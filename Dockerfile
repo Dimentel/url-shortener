@@ -1,18 +1,25 @@
 FROM python:3.12
 
-RUN mkdir /url-shortener
+# Установка системных зависимостей под root
+RUN apt-get update && \
+    apt-get install -y postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /url-shortener
+# Создание не-root пользователя
+RUN useradd -m appuser
+WORKDIR /home/appuser/app
+RUN chown appuser:appuser /home/appuser/app
 
+# Копирование зависимостей и установка под appuser
 COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
 
-RUN pip install -r requirements.txt
+# Копирование остальных файлов
+COPY --chown=appuser:appuser . .
 
-COPY . .
+USER appuser
 
-RUN chmod a+x docker/*.sh
+# Остальные команды
+RUN chmod +x docker/*.sh
 
 CMD ["./docker/app.sh"]
-#WORKDIR src
-
-#CMD gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000

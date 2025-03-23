@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Ждём готовности PostgreSQL
+# Ждём доступности PostgreSQL (теперь pg_isready доступен)
 until pg_isready -h db -U user -d dbname; do
-  echo "Waiting for PostgreSQL..."
+  echo "Waiting for PostgreSQL to become available..."
   sleep 2
 done
 
