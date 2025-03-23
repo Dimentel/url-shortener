@@ -17,7 +17,6 @@ class LinkResponse(BaseModel):
     clicks: int
 
     class Config:
-        orm_mode = True  # Включаем поддержку ORM
         from_attributes = True
 
 

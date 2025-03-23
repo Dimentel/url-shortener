@@ -93,7 +93,7 @@ async def _create_link(
             new_link.short_code,
             new_link.original_url,
         )
-    return LinkResponse.from_orm(new_link)
+    return LinkResponse.model_validate(new_link)
 
 
 @router.get("/search", response_model=list[LinkResponse])

@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 @router.post("/send-email/{user_id}")
 async def trigger_email_task(
-    user_id: int,
+    user_id: UUID,
     session: AsyncSession = Depends(get_async_session),
 ):
     """Запуск задачи отправки email."""

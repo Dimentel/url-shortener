@@ -3,20 +3,22 @@ from src.config import SMTP_USER, SMTP_PASSWORD, SMTP_HOST, SMTP_PORT
 import smtplib
 from email.message import EmailMessage
 
-celery = Celery('tasks', broker='redis://localhost:6379')
+from src.logger import logger
+
+celery = Celery("tasks", broker="redis://localhost:6379")
 
 
 def get_template_email(username: str):
     """Создание HTML-шаблона для email."""
     msg = EmailMessage()
-    msg['Subject'] = 'Уведомление от URL Shortener'
-    msg['From'] = SMTP_USER
-    msg['To'] = username  # Используем email пользователя
+    msg["Subject"] = "Уведомление от URL Shortener"
+    msg["From"] = SMTP_USER
+    msg["To"] = username  # Используем email пользователя
     msg.set_content(
-        '<div>'
+        "<div>"
         f'<h1 style="color: red;">Здравствуйте, {username}. Ваша ссылка была успешно создана или изменена.</h1>'
-        '</div>',
-        subtype='html'
+        "</div>",
+        subtype="html",
     )
     return msg
 
@@ -30,5 +32,5 @@ def send_email(email: str):
         try:
             server.send_message(msg)
         except Exception as e:
-            print(f"Failed to send email: {e}")
+            logger.warning("Failed to send email: %s", e)
             send_email.retry()
