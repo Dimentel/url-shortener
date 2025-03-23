@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Ожидание доступности PostgreSQL
-echo "Waiting for PostgreSQL..."
-while ! pg_isready -h db -U user -d dbname -q; do
+# Явное ожидание порта PostgreSQL
+echo "⏳ Waiting for PostgreSQL..."
+until nc -z db 5432; do
   sleep 1
 done
 
-# Применение миграций
+echo "✅ PostgreSQL is ready! Applying migrations..."
 alembic upgrade head
 
-# Запуск приложения
+echo "🚀 Starting application..."
 gunicorn src.main:app \
   --workers 4 \
   --worker-class uvicorn.workers.UvicornWorker \

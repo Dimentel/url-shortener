@@ -1,24 +1,22 @@
-FROM python:3.12
+FROM python:3.12-slim
 
-# Установка системных зависимостей
+# Установка зависимостей
 RUN apt-get update && \
-    apt-get install -y postgresql-client && \
+    apt-get install -y \
+    postgresql-client \
+    netcat && \
     rm -rf /var/lib/apt/lists/*
-
-# Создание виртуального окружения
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /app
 
-# Копирование и установка зависимостей
+# Копирование требований первым для кэширования
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копирование исходного кода
+# Копирование остальных файлов
 COPY . .
 
 # Права на скрипты
 RUN chmod +x docker/*.sh
 
-CMD ["docker/app.sh"]
+CMD ["./docker/app.sh"]

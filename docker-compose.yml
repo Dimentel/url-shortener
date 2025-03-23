@@ -3,35 +3,36 @@ version: "3.8"
 services:
   app:
     build: .
-    container_name: url-shortener
-    command: ["docker/app.sh"]
+    command: sh -c "while ! nc -z db 5432; do sleep 1; done && ./docker/app.sh"
     ports:
       - "8000:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 512MB
+      restart_policy:
+        condition: on-failure
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/dbname
-      - REDIS_URL=redis://redis:6379
     depends_on:
       db:
-        condition: service_healthy
-      redis:
         condition: service_healthy
 
   db:
     image: postgres:15
-    container_name: db_app
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d dbname"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      interval: 10s
+      timeout: 30s
+      retries: 10
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: dbname
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   redis:
     image: redis:7
