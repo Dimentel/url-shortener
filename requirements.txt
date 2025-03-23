@@ -14,3 +14,4 @@ celery~=5.4.0
 flower
 pydantic~=2.10.6
 starlette~=0.45.3
+websockets>=11.0.3

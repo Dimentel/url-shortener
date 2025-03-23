@@ -1,25 +1,24 @@
 FROM python:3.12
 
-# Установка системных зависимостей под root
+# Установка системных зависимостей
 RUN apt-get update && \
     apt-get install -y postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 
-# Создание не-root пользователя
-RUN useradd -m appuser
-WORKDIR /home/appuser/app
-RUN chown appuser:appuser /home/appuser/app
+# Создание виртуального окружения
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Копирование зависимостей и установка под appuser
+WORKDIR /app
+
+# Копирование и установка зависимостей
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Копирование остальных файлов
-COPY --chown=appuser:appuser . .
+# Копирование исходного кода
+COPY . .
 
-USER appuser
-
-# Остальные команды
+# Права на скрипты
 RUN chmod +x docker/*.sh
 
-CMD ["./docker/app.sh"]
+CMD ["docker/app.sh"]
