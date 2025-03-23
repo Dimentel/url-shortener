@@ -1,19 +1,19 @@
-FROM python:3.12-slim
+FROM python:3.12-bookworm
 
-# Установка зависимостей
+# Установка системных зависимостей
 RUN apt-get update && \
     apt-get install -y \
-    postgresql-client \
-    netcat && \
+    postgresql-client-15 \
+    netcat-traditional && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Копирование требований первым для кэширования
+# Кэширование зависимостей Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копирование остальных файлов
+# Копирование приложения
 COPY . .
 
 # Права на скрипты
