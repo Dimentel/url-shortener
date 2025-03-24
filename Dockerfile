@@ -1,4 +1,4 @@
-FROM python:3.12-bookworm
+FROM python:3.10
 
 # Установка системных зависимостей
 RUN apt-get update && \
@@ -7,7 +7,7 @@ RUN apt-get update && \
     netcat-traditional && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /url-shortener
 
 # Кэширование зависимостей Python
 COPY requirements.txt .

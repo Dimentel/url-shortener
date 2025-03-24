@@ -1,38 +1,50 @@
-version: "3.8"
-
 services:
   app:
     build: .
     command: sh -c "while ! nc -z db 5432; do sleep 1; done && ./docker/app.sh"
     ports:
       - "8000:8000"
-    deploy:
-      resources:
-        limits:
-          memory: 512MB
-      restart_policy:
-        condition: on-failure
+    env_file: .env  # <- подключаем переменные
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/dbname
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_LOGIN_EXPIRES_IN=${JWT_LOGIN_EXPIRES_IN}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal
 
   db:
     image: postgres:15
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: md5
+    command: postgres -c listen_addresses='*'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d dbname"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 30s
       retries: 10
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: dbname
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    networks:
+      - internal
 
   redis:
     image: redis:7
@@ -42,8 +54,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    ports:
-      - "6379:6379"
+    networks:
+      - internal
 
 volumes:
   postgres_data:
+
+networks:
+  internal:
+    driver: bridge

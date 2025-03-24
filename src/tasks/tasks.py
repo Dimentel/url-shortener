@@ -1,11 +1,18 @@
 from celery import Celery
-from src.config import SMTP_USER, SMTP_PASSWORD, SMTP_HOST, SMTP_PORT
+from src.config import (
+    SMTP_USER,
+    SMTP_PASSWORD,
+    SMTP_HOST,
+    SMTP_PORT,
+    REDIS_HOST,
+    REDIS_PORT,
+)
 import smtplib
 from email.message import EmailMessage
 
 from src.logger import logger
 
-celery = Celery("tasks", broker="redis://localhost:6379")
+celery = Celery("tasks", broker=f"redis://{REDIS_HOST}:{REDIS_PORT}")
 
 
 def get_template_email(username: str):
