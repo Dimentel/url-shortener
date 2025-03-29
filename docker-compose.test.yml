@@ -1,0 +1,51 @@
+services:
+  test-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d test_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+    networks:
+      - test-network
+
+  test-redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  test-runner:
+    image: url-shortener-app
+    command: >
+      bash -c "pip install pytest-cov httpx pytest-asyncio &&
+      pytest --cov-report=term-missing --cov=src  tests/"
+    volumes:
+      - .:/url-shortener
+    environment:
+      PYTHONPATH: /url-shortener
+      DATABASE_URL: postgresql://test:test@test-db:5432/test_db
+      REDIS_URL: redis://test-redis:6379
+      TESTING: "1"
+    depends_on:
+      test-db:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    name: url-shortener-test-network
+    driver: bridge
